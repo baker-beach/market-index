@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+
+	<bean id="catalogService" class="com.bakerbeach.market.catalog.service.CatalogServiceImpl">
+		<property name="mongoProductDao" ref="defaultProductDao" />
+		<property name="inventoryService" ref="euInventoryService" />
+		<property name="solrProductDao" ref="solrProductDao" />
+	</bean>
+
+	<bean id="messageService" class="com.bakerbeach.market.core.service.MessageServiceImpl">
+		<property name="messageDao" ref="mongoMessageDao" />
+		<property name="defaultLocale" value="de" />
+	</bean>
+
+	<bean id="mongoMessageDao" class="com.bakerbeach.market.core.service.MessageDaoImpl">
+		<property name="mongoTemplate" ref="cmsTemplate" />
+		<property name="messagesCollection" value="messages" />
+	</bean>
+
+	<bean id="solrProductDao" class="com.bakerbeach.market.catalog.dao.SolrProductDaoLiveImpl">
+		<property name="url" value="${solr.product.url}" />	
+	</bean>
+
+	<bean id="defaultProductDao" class="com.bakerbeach.market.catalog.dao.MongoProductDao">
+		<property name="mongoTemplate" ref="shopTemplate" />
+		<!-- <property name="shop" value="MOMENT_EU"/> -->
+		<!-- <property name="collectionName" value="${moment.mongo.product.collection}" 
+			/> -->
+	</bean>
+
+	<bean id="euInventoryService" class="com.bakerbeach.market.core.service.inventory.InventoryServiceImpl">
+		<property name="inventoryDao" ref="inventoryDao" />
+		<property name="inventoryCacheDao" ref="inventoryCacheDao" />
+		<property name="transactionManager" ref="jdbcTxManager" />
+		<!--
+		<property name="transactionManager" ref="inventoryTxManager" />
+		<property name="catalogService" ref="catalogService" />
+		-->
+		<property name="shopsStorageLocations">
+			<bean class="java.util.HashMap">
+				<constructor-arg>
+					<map key-type="java.lang.String" value-type="java.util.List">
+						<entry key="MOMENT">
+							<list value-type="java.lang.String">
+								<value>MOMENT_HK_STORAGE</value>
+							</list>
+						</entry>
+					</map>
+				</constructor-arg>
+			</bean>
+		</property>
+		<property name="servicingStorageLocations">
+			<bean id="servicingStorageLocations" class="java.util.HashMap" />
+		</property>
+	</bean>
+		
+	<bean id="inventoryDao" class="com.bakerbeach.market.core.service.inventory.StdInventoryDaoImpl">
+		<property name="jdbcTemplate" ref="productInventoryJdbcTemplate" />
+	</bean>
+
+	<bean id="inventoryCacheDao" class="com.bakerbeach.market.core.service.inventory.InvetoryCacheDaoImpl">
+		<property name="shop" value="MOMENT" />
+		<property name="collectionName" value="inventory" />
+		<property name="mongoTemplate" ref="inventoryCacheTemplate" />
+	</bean>
+
+	<bean id="facetFilterFactory" class="com.bakerbeach.market.catalog.utils.FacetFilterFactory">
+		<property name="attributeUrlMapping" ref="attributeUrlMapping" />
+	</bean>
+	
+	<bean id="attributeUrlMapping" class="com.bakerbeach.market.core.service.AttributeUrlMapping"
+		init-method="init">
+		<property name="messageService" ref="messageService" />
+		<property name="languages">
+			<set value-type="java.lang.String">
+				<value>en</value>
+				<value>de</value>
+			</set>
+		</property>
+	</bean>
+		
+	<beans profile="product.published">
+	</beans>
+
+</beans>
