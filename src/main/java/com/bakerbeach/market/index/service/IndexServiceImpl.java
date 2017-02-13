@@ -34,6 +34,33 @@ public class IndexServiceImpl implements IndexService {
 	private InventoryService inventoryService;
 	private TranslationService translationService;
 
+	
+	@Override
+	public void delete(List<String> gtins, String solrCode, String status) {
+		String solrCollectionCode = solrCode.concat("_").concat(status).toLowerCase();
+		SolrServer solr = SolrServerFactory.getServer(solrCollectionCode);
+		
+		for (String gtin : gtins) {
+			delete(gtin, solr);
+		}
+	}
+
+	@Override
+	public void delete(String gtin, String solrCode, String status) {
+		String solrCollectionCode = solrCode.concat("_").concat(status).toLowerCase();
+		SolrServer solr = SolrServerFactory.getServer(solrCollectionCode);
+		delete(gtin, solr);
+	}
+	
+	private void delete(String gtin, SolrServer solr) {
+		try {
+			String q = new StringBuilder("gtin:").append(gtin).toString();
+			solr.deleteByQuery(q, 10000);
+		} catch (Exception e) {
+			log.error(ExceptionUtils.getStackTrace(e));
+		}
+	}
+
 	@Override
 	public void index(List<RawProduct> products, String code, String status, Date lastUpdate, List<Locale> locales,
 			List<Currency> currencies, List<String> priceGroups) {
@@ -49,13 +76,13 @@ public class IndexServiceImpl implements IndexService {
 			String solrCollectionCode = code.concat("_").concat(status).toLowerCase();
 			SolrServer solr = SolrServerFactory.getServer(solrCollectionCode);
 
-			// delete existing entries
-			try {
-				String q = new StringBuilder("gtin:").append(product.getGtin()).toString();
-				solr.deleteByQuery(q);
-			} catch (Exception e) {
-				log.error(ExceptionUtils.getStackTrace(e));
-			}
+//			// delete existing entries
+//			try {
+//				String q = new StringBuilder("gtin:").append(product.getGtin()).toString();
+//				solr.deleteByQuery(q);
+//			} catch (Exception e) {
+//				log.error(ExceptionUtils.getStackTrace(e));
+//			}
 
 			if (!product.isIndex()) {
 				log.info(String.format("indexed is false for gtin=%s", product.getGtin()));
