@@ -10,6 +10,7 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.common.SolrInputDocument;
@@ -181,7 +182,9 @@ public class IndexServiceImpl implements IndexService {
 		addI18NFields(doc, shop, "size", size, "size", "text", locales, false);
 		addI18NFields(doc, shop, "color", color, "color", "text", locales, false);
 		addI18NFields(doc, shop, "diet", diet, "diet", "text", locales, false);
-		addI18NFields(doc, shop, "colorpicker", (String) product.get("colorpicker"), "color", "text", locales, false);
+		for (String colorpicker : (List<String>) product.get("colorpicker")) {
+			addI18NFields(doc, shop, "colorpicker", colorpicker, "color", "text", locales, true);			
+		}
 
 		if (product.getVariant1() != null) {
 			addI18NFields(doc, shop, "variant_1", product.getVariant1(), "variant_1", "text", locales, false);
