@@ -182,8 +182,11 @@ public class IndexServiceImpl implements IndexService {
 		addI18NFields(doc, shop, "size", size, "size", "text", locales, false);
 		addI18NFields(doc, shop, "color", color, "color", "text", locales, false);
 		addI18NFields(doc, shop, "diet", diet, "diet", "text", locales, false);
-		for (String colorpicker : (List<String>) product.get("colorpicker")) {
-			addI18NFields(doc, shop, "colorpicker", colorpicker, "color", "text", locales, true);			
+
+		if (product.get("colorpicker") != null) {
+			for (String colorpicker : (List<String>) product.get("colorpicker")) {
+				addI18NFields(doc, shop, "colorpicker", colorpicker, "color", "text", locales, true);			
+			}			
 		}
 
 		if (product.getVariant1() != null) {
