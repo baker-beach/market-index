@@ -51,8 +51,18 @@ public class XIndexServiceImpl implements XIndexService {
 			String url = context.getSolrUrls().get(status.name());
 			SolrServer solr = SolrServerCache.getServer(url);
 
-			Date indexTime = new Date();
-
+			// delete existing entries
+			try {
+				String q = new StringBuilder("code:").append(product.getCode()).toString();
+				solr.deleteByQuery(q, 10000);
+			} catch (Exception e) {
+				log.error(ExceptionUtils.getStackTrace(e));
+			}
+			
+			if (product.isIndexed() != null && !product.isIndexed()) {
+				return;
+			}
+			
 			// get all relevant time spans
 			List<Date> dates = new ArrayList<Date>();
 			dates.add(getDefaultTo().getTime());
