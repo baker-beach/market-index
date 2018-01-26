@@ -7,10 +7,12 @@ import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -136,11 +138,23 @@ public class XIndexServiceImpl implements XIndexService {
 			addI18NFields(doc, shop, "category", category, "category", "text", locales, true);
 		}
 
+		Map<String, Price> priceMap = new HashMap<>();
 		for (Price price : product.getPrices()) {
 			String key = new StringBuilder(price.getCurrency().getCurrencyCode()).append("_").append(price.getGroup())
 					.append("_").append(price.getTag()).append("_price").toString().toLowerCase();
-			BigDecimal value = price.getValue();
-			doc.addField(key, value);
+			
+			if (!price.getStart().after(from)) {
+				if (priceMap.containsKey(key)) {
+					if (priceMap.get(key).getStart().before(price.getStart())) {
+						priceMap.put(key, price);
+					}
+				} else {
+					priceMap.put(key, price);					
+				}
+			}
+		}		
+		for(Entry<String, Price> e : priceMap.entrySet()) {
+			doc.setField(e.getKey(), e.getValue().getValue());
 		}
 
 		BigDecimal basePrice1Divisor = product.getBasePrice1Divisor();
